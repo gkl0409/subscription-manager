@@ -205,7 +205,7 @@ const loginPage = `
       <h1 class="text-2xl font-bold text-gray-800"><i class="fas fa-calendar-check mr-2"></i>訂閱管理系統</h1>
       <p class="text-gray-600 mt-2">登入管理您的訂閱提醒</p>
     </div>
-    
+
     <form id="loginForm" class="space-y-6">
       <div>
         <label for="username" class="block text-sm font-medium text-gray-700 mb-1">
@@ -214,7 +214,7 @@ const loginPage = `
         <input type="text" id="username" name="username" required
           class="input-field w-full px-4 py-3 rounded-lg text-gray-700 focus:outline-none">
       </div>
-      
+
       <div>
         <label for="password" class="block text-sm font-medium text-gray-700 mb-1">
           <i class="fas fa-lock mr-2"></i>密碼
@@ -222,36 +222,36 @@ const loginPage = `
         <input type="password" id="password" name="password" required
           class="input-field w-full px-4 py-3 rounded-lg text-gray-700 focus:outline-none">
       </div>
-      
-      <button type="submit" 
+
+      <button type="submit"
         class="btn-primary w-full py-3 rounded-lg text-white font-medium focus:outline-none">
         <i class="fas fa-sign-in-alt mr-2"></i>登入
       </button>
-      
+
       <div id="errorMsg" class="text-red-500 text-center"></div>
     </form>
   </div>
-  
+
   <script>
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const username = document.getElementById('username').value;
       const password = document.getElementById('password').value;
-      
+
       const button = e.target.querySelector('button');
       const originalContent = button.innerHTML;
       button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>登入中...';
       button.disabled = true;
-      
+
       try {
         const response = await fetch('/api/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username, password })
         });
-        
+
         const result = await response.json();
-        
+
         if (result.success) {
           window.location.href = '/admin';
         } else {
@@ -465,7 +465,7 @@ const adminPage = `
       .responsive-table td:last-of-type { border-bottom: none; }
       .responsive-table td:before { content: attr(data-label); font-weight: 600; text-align: left; padding-right: 1rem; color: #374151; white-space: nowrap; }
       .action-buttons-wrapper { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: flex-end; }
-      
+
       .notes-container, .hover-container {
         max-width: 180px; /* Adjust for new layout */
         text-align: right;
@@ -493,6 +493,54 @@ const adminPage = `
     .toast.error { background-color: #ef4444; }
     .toast.info { background-color: #3b82f6; }
     .toast.warning { background-color: #f59e0b; }
+
+    /* 標籤過濾樣式 */
+    .filter-tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: 2px solid transparent;
+      text-decoration: none;
+      user-select: none;
+    }
+    .filter-tag:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+    .filter-tag.active {
+      border-color: rgba(255, 255, 255, 0.3);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+    .filter-tag .count {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      border-radius: 10px;
+      min-width: 20px;
+      height: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-left: 6px;
+      padding: 0 6px;
+    }
+    .filter-tag.tag-all { background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%); color: white; }
+    .filter-tag.tag-status-normal { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; }
+    .filter-tag.tag-status-expiring { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; }
+    .filter-tag.tag-status-expired { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; }
+    .filter-tag.tag-status-inactive { background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%); color: white; }
+    .filter-tag.tag-type { background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; }
+    .filter-tag.tag-type:nth-child(2n+1) { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); }
+    .filter-tag.tag-type:nth-child(3n+1) { background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); }
+    .filter-tag.tag-type:nth-child(4n+1) { background: linear-gradient(135deg, #84cc16 0%, #65a30d 100%); }
+    .filter-tag.tag-type:nth-child(5n+1) { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
+    .filter-tag.tag-type:nth-child(6n+1) { background: linear-gradient(135deg, #ec4899 0%, #db2777 100%); }
   </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
@@ -519,7 +567,7 @@ const adminPage = `
       </div>
     </div>
   </nav>
-  
+
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <div class="flex justify-between items-center mb-6">
       <h2 class="text-2xl font-bold text-gray-800">訂閱列表</h2>
@@ -533,7 +581,12 @@ const adminPage = `
         </button>
       </div>
     </div>
-    
+
+    <!-- 標籤過濾區域 -->
+    <div class="mb-6">
+      <div id="filterTags" class="flex flex-wrap gap-2"></div>
+    </div>
+
     <div class="table-container bg-white rounded-lg overflow-hidden">
       <div class="overflow-x-auto">
         <table class="w-full divide-y divide-gray-200 responsive-table">
@@ -577,10 +630,10 @@ const adminPage = `
           </button>
         </div>
       </div>
-      
+
       <form id="subscriptionForm" class="p-6 space-y-6">
         <input type="hidden" id="subscriptionId">
-        
+
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label for="name" class="block text-sm font-medium text-gray-700 mb-1">訂閱名稱 *</label>
@@ -588,7 +641,7 @@ const adminPage = `
               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
             <div class="error-message text-red-500"></div>
           </div>
-          
+
           <div>
             <label for="customType" class="block text-sm font-medium text-gray-700 mb-1">訂閱類型</label>
             <input type="text" id="customType" placeholder="例如：串流媒體、雲端服務、軟體等"
@@ -596,7 +649,7 @@ const adminPage = `
             <div class="error-message text-red-500"></div>
           </div>
         </div>
-        
+
         <div class="mb-4">
           <label class="lunar-toggle">
             <input type="checkbox" id="showLunar" class="form-checkbox h-4 w-4 text-indigo-600">
@@ -612,14 +665,14 @@ const adminPage = `
             <div id="startDateLunar" class="lunar-display"></div>
             <div class="error-message text-red-500"></div>
           </div>
-          
+
           <div>
             <label for="periodValue" class="block text-sm font-medium text-gray-700 mb-1">週期數值 *</label>
             <input type="number" id="periodValue" min="1" value="1" required
               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
             <div class="error-message text-red-500"></div>
           </div>
-          
+
           <div>
             <label for="periodUnit" class="block text-sm font-medium text-gray-700 mb-1">週期單位 *</label>
             <select id="periodUnit" required
@@ -631,7 +684,7 @@ const adminPage = `
             <div class="error-message text-red-500"></div>
           </div>
         </div>
-        
+
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label for="expiryDate" class="block text-sm font-medium text-gray-700 mb-1">到期日期 *</label>
@@ -640,15 +693,15 @@ const adminPage = `
             <div id="expiryDateLunar" class="lunar-display"></div>
             <div class="error-message text-red-500"></div>
           </div>
-          
+
           <div class="flex items-end">
-            <button type="button" id="calculateExpiryBtn" 
+            <button type="button" id="calculateExpiryBtn"
               class="btn-primary text-white px-4 py-2 rounded-md text-sm font-medium h-10">
               <i class="fas fa-calculator mr-2"></i>自動計算到期日期
             </button>
           </div>
         </div>
-        
+
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label for="reminderDays" class="block text-sm font-medium text-gray-700 mb-1">提前提醒天數</label>
@@ -657,37 +710,37 @@ const adminPage = `
             <p class="text-xs text-gray-500 mt-1">0 = 僅到期日當天提醒，1+ = 提前N天開始提醒</p>
             <div class="error-message text-red-500"></div>
           </div>
-          
+
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-3">選項設定</label>
             <div class="space-y-2">
               <label class="inline-flex items-center">
-                <input type="checkbox" id="isActive" checked 
+                <input type="checkbox" id="isActive" checked
                   class="form-checkbox h-4 w-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500">
                 <span class="ml-2 text-sm text-gray-700">啟用訂閱</span>
               </label>
               <label class="inline-flex items-center">
-                <input type="checkbox" id="autoRenew" checked 
+                <input type="checkbox" id="autoRenew" checked
                   class="form-checkbox h-4 w-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500">
                 <span class="ml-2 text-sm text-gray-700">自動續訂</span>
               </label>
             </div>
           </div>
         </div>
-        
+
         <div>
           <label for="notes" class="block text-sm font-medium text-gray-700 mb-1">備註</label>
           <textarea id="notes" rows="3" placeholder="可新增相關備註資訊..."
             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"></textarea>
           <div class="error-message text-red-500"></div>
         </div>
-        
+
         <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
-          <button type="button" id="cancelBtn" 
+          <button type="button" id="cancelBtn"
             class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
             取消
           </button>
-          <button type="submit" 
+          <button type="submit"
             class="btn-primary text-white px-4 py-2 rounded-md text-sm font-medium">
             <i class="fas fa-save mr-2"></i>儲存
           </button>
@@ -912,13 +965,13 @@ const adminPage = `
       const container = document.getElementById('toast-container');
       const toast = document.createElement('div');
       toast.className = 'toast ' + type;
-      
+
       const icon = type === 'success' ? 'check-circle' :
                    type === 'error' ? 'exclamation-circle' :
                    type === 'warning' ? 'exclamation-triangle' : 'info-circle';
-      
+
       toast.innerHTML = '<div class="flex items-center"><i class="fas fa-' + icon + ' mr-2"></i><span>' + message + '</span></div>';
-      
+
       container.appendChild(toast);
       setTimeout(() => toast.classList.add('show'), 100);
       setTimeout(() => {
@@ -997,6 +1050,10 @@ const adminPage = `
       '</div>';
     }
 
+    // 全域變數儲存過濾狀態
+    let currentFilter = 'all';
+    let allSubscriptions = [];
+
     // 獲取所有訂閱並按到期時間排序
     async function loadSubscriptions() {
       try {
@@ -1014,229 +1071,27 @@ const adminPage = `
 
         const response = await fetch('/api/subscriptions');
         const data = await response.json();
-        
+
+        // 儲存到全域變數
+        allSubscriptions = data;
+
         tbody.innerHTML = '';
-        
+
         if (data.length === 0) {
           tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-gray-500">沒有訂閱資料</td></tr>';
+          // 清空標籤
+          document.getElementById('filterTags').innerHTML = '';
           return;
         }
-        
+
         // 按到期時間升序排序（最早到期的在前）
         data.sort((a, b) => new Date(a.expiryDate) - new Date(b.expiryDate));
-        
-        data.forEach(subscription => {
-          const row = document.createElement('tr');
-          row.className = subscription.isActive === false ? 'hover:bg-gray-50 bg-gray-100' : 'hover:bg-gray-50';
-          
-          const expiryDate = new Date(subscription.expiryDate);
-          const now = new Date();
-          const daysDiff = Math.ceil((expiryDate - now) / (1000 * 60 * 60 * 24));
-          
-          let statusHtml = '';
-          if (!subscription.isActive) {
-            statusHtml = '<span class="px-2 py-1 text-xs font-medium rounded-full text-white bg-gray-500"><i class="fas fa-pause-circle mr-1"></i>已停用</span>';
-          } else if (daysDiff < 0) {
-            statusHtml = '<span class="px-2 py-1 text-xs font-medium rounded-full text-white bg-red-500"><i class="fas fa-exclamation-circle mr-1"></i>已過期</span>';
-          } else if (daysDiff <= (subscription.reminderDays || 7)) {
-            statusHtml = '<span class="px-2 py-1 text-xs font-medium rounded-full text-white bg-yellow-500"><i class="fas fa-exclamation-triangle mr-1"></i>即將到期</span>';
-          } else {
-            statusHtml = '<span class="px-2 py-1 text-xs font-medium rounded-full text-white bg-green-500"><i class="fas fa-check-circle mr-1"></i>正常</span>';
-          }
-          
-          let periodText = '';
-          if (subscription.periodValue && subscription.periodUnit) {
-            const unitMap = { day: '天', month: '月', year: '年' };
-            periodText = subscription.periodValue + ' ' + (unitMap[subscription.periodUnit] || subscription.periodUnit);
-          }
-          
-          const autoRenewIcon = subscription.autoRenew !== false ? 
-            '<i class="fas fa-sync-alt text-blue-500 ml-1" title="自動續訂"></i>' : 
-            '<i class="fas fa-ban text-gray-400 ml-1" title="不自動續訂"></i>';
-          
-          // 檢查是否顯示農曆
-          const showLunar = document.getElementById('listShowLunar').checked;
-          let lunarExpiryText = '';
-          let startLunarText = '';
 
-          if (showLunar) {
-            // 計算農曆日期
-            const expiryDateObj = new Date(subscription.expiryDate);
-            const lunarExpiry = lunarCalendar.solar2lunar(expiryDateObj.getFullYear(), expiryDateObj.getMonth() + 1, expiryDateObj.getDate());
-            lunarExpiryText = lunarExpiry ? lunarExpiry.fullStr : '';
+        // 生成過濾標籤
+        generateFilterTags(data);
 
-            if (subscription.startDate) {
-              const startDateObj = new Date(subscription.startDate);
-              const lunarStart = lunarCalendar.solar2lunar(startDateObj.getFullYear(), startDateObj.getMonth() + 1, startDateObj.getDate());
-              startLunarText = lunarStart ? lunarStart.fullStr : '';
-            }
-          }
-
-          // 處理備註顯示
-          let notesHtml = '';
-          if (subscription.notes) {
-            const notes = subscription.notes;
-            if (notes.length > 50) {
-              const truncatedNotes = notes.substring(0, 50) + '...';
-              notesHtml = '<div class="notes-container">' +
-                '<div class="notes-text text-xs text-gray-500" data-full-notes="' + notes.replace(/"/g, '&quot;') + '">' +
-                  truncatedNotes +
-                '</div>' +
-                '<div class="notes-tooltip"></div>' +
-              '</div>';
-            } else {
-              notesHtml = '<div class="text-xs text-gray-500">' + notes + '</div>';
-            }
-          }
-
-          // 產生各列內容
-          const nameHtml = createHoverText(subscription.name, 20, 'text-sm font-medium text-gray-900');
-          const typeHtml = createHoverText((subscription.customType || '其他'), 15, 'text-sm text-gray-900');
-          const periodHtml = periodText ? createHoverText('週期: ' + periodText, 20, 'text-xs text-gray-500 mt-1') : '';
-
-          // 到期時間相關資訊
-          const expiryDateText = formatTaipeiTime(new Date(subscription.expiryDate), 'date');
-          const lunarHtml = lunarExpiryText ? createHoverText('農曆: ' + lunarExpiryText, 25, 'text-xs text-blue-600 mt-1') : '';
-          const daysLeftText = daysDiff < 0 ? '已過期' + Math.abs(daysDiff) + '天' : '還剩' + daysDiff + '天';
-          const startDateText = subscription.startDate ?
-            '開始: ' + formatTaipeiTime(new Date(subscription.startDate), 'date') + (startLunarText ? ' (' + startLunarText + ')' : '') : '';
-          const startDateHtml = startDateText ? createHoverText(startDateText, 30, 'text-xs text-gray-500 mt-1') : '';
-
-          row.innerHTML =
-            '<td data-label="名稱" class="px-4 py-3"><div class="td-content-wrapper">' +
-              nameHtml +
-              notesHtml +
-            '</div></td>' +
-            '<td data-label="類型" class="px-4 py-3"><div class="td-content-wrapper">' +
-              '<div class="flex items-center"><i class="fas fa-tag mr-1"></i><span>' + typeHtml + '</span></div>' +
-              (periodHtml ? '<div class="flex items-center">' + periodHtml + autoRenewIcon + '</div>' : '') +
-            '</div></td>' +
-            '<td data-label="到期時間" class="px-4 py-3"><div class="td-content-wrapper">' +
-              '<div class="text-sm text-gray-900">' + expiryDateText + '</div>' +
-              lunarHtml +
-              '<div class="text-xs text-gray-500 mt-1">' + daysLeftText + '</div>' +
-              startDateHtml +
-            '</div></td>' +
-            '<td data-label="提醒設定" class="px-4 py-3"><div class="td-content-wrapper">' +
-              '<div><i class="fas fa-bell mr-1"></i>提前' + (subscription.reminderDays || 0) + '天</div>' +
-              (subscription.reminderDays === 0 ? '<div class="text-xs text-gray-500 mt-1">僅到期日提醒</div>' : '') +
-            '</div></td>' +
-            '<td data-label="狀態" class="px-4 py-3"><div class="td-content-wrapper">' + statusHtml + '</div></td>' +
-            '<td data-label="操作" class="px-4 py-3">' +
-              '<div class="action-buttons-wrapper">' +
-                '<button class="edit btn-primary text-white px-2 py-1 rounded text-xs whitespace-nowrap" data-id="' + subscription.id + '"><i class="fas fa-edit mr-1"></i>編輯</button>' +
-                '<button class="test-notify btn-info text-white px-2 py-1 rounded text-xs whitespace-nowrap" data-id="' + subscription.id + '"><i class="fas fa-paper-plane mr-1"></i>測試</button>' +
-                '<button class="delete btn-danger text-white px-2 py-1 rounded text-xs whitespace-nowrap" data-id="' + subscription.id + '"><i class="fas fa-trash-alt mr-1"></i>刪除</button>' +
-                (subscription.isActive ?
-                  '<button class="toggle-status btn-warning text-white px-2 py-1 rounded text-xs whitespace-nowrap" data-id="' + subscription.id + '" data-action="deactivate"><i class="fas fa-pause-circle mr-1"></i>停用</button>' :
-                  '<button class="toggle-status btn-success text-white px-2 py-1 rounded text-xs whitespace-nowrap" data-id="' + subscription.id + '" data-action="activate"><i class="fas fa-play-circle mr-1"></i>啟用</button>') +
-              '</div>' +
-            '</td>';
-          
-          tbody.appendChild(row);
-        });
-        
-        document.querySelectorAll('.edit').forEach(button => {
-          button.addEventListener('click', editSubscription);
-        });
-        
-        document.querySelectorAll('.delete').forEach(button => {
-          button.addEventListener('click', deleteSubscription);
-        });
-        
-        document.querySelectorAll('.toggle-status').forEach(button => {
-          button.addEventListener('click', toggleSubscriptionStatus);
-        });
-
-        document.querySelectorAll('.test-notify').forEach(button => {
-          button.addEventListener('click', testSubscriptionNotification);
-        });
-
-        // 新增懸停功能
-        function addHoverListeners() {
-          // 計算懸浮提示位置
-          function positionTooltip(element, tooltip) {
-            const rect = element.getBoundingClientRect();
-            const tooltipHeight = 100; // 預估高度
-            const viewportHeight = window.innerHeight;
-            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-
-            let top = rect.bottom + scrollTop + 8;
-            let left = rect.left;
-
-            // 如果下方空間不夠，顯示在上方
-            if (rect.bottom + tooltipHeight > viewportHeight) {
-              top = rect.top + scrollTop - tooltipHeight - 8;
-              tooltip.style.transform = 'translateY(10px)';
-              // 調整箭頭位置
-              tooltip.classList.add('tooltip-above');
-            } else {
-              tooltip.style.transform = 'translateY(-10px)';
-              tooltip.classList.remove('tooltip-above');
-            }
-
-            // 確保不超出右邊界
-            const maxLeft = window.innerWidth - 320 - 20;
-            if (left > maxLeft) {
-              left = maxLeft;
-            }
-
-            tooltip.style.left = left + 'px';
-            tooltip.style.top = top + 'px';
-          }
-
-          // 備註懸停功能
-          document.querySelectorAll('.notes-text').forEach(notesElement => {
-            const fullNotes = notesElement.getAttribute('data-full-notes');
-            const tooltip = notesElement.parentElement.querySelector('.notes-tooltip');
-
-            if (fullNotes && tooltip) {
-              notesElement.addEventListener('mouseenter', () => {
-                tooltip.textContent = fullNotes;
-                positionTooltip(notesElement, tooltip);
-                tooltip.classList.add('show');
-              });
-
-              notesElement.addEventListener('mouseleave', () => {
-                tooltip.classList.remove('show');
-              });
-
-              // 捲動時隱藏提示
-              window.addEventListener('scroll', () => {
-                if (tooltip.classList.contains('show')) {
-                  tooltip.classList.remove('show');
-                }
-              }, { passive: true });
-            }
-          });
-
-          // 通用懸停功能
-          document.querySelectorAll('.hover-text').forEach(hoverElement => {
-            const fullText = hoverElement.getAttribute('data-full-text');
-            const tooltip = hoverElement.parentElement.querySelector('.hover-tooltip');
-
-            if (fullText && tooltip) {
-              hoverElement.addEventListener('mouseenter', () => {
-                tooltip.textContent = fullText;
-                positionTooltip(hoverElement, tooltip);
-                tooltip.classList.add('show');
-              });
-
-              hoverElement.addEventListener('mouseleave', () => {
-                tooltip.classList.remove('show');
-              });
-
-              // 捲動時隱藏提示
-              window.addEventListener('scroll', () => {
-                if (tooltip.classList.contains('show')) {
-                  tooltip.classList.remove('show');
-                }
-              }, { passive: true });
-            }
-          });
-        }
-
-        addHoverListeners();
+        // 顯示過濾後的訂閱
+        displayFilteredSubscriptions(data);
 
         // 新增農曆開關事件監聽
         listShowLunar.removeEventListener('change', handleListLunarToggle);
@@ -1248,7 +1103,383 @@ const adminPage = `
         showToast('載入訂閱列表失敗', 'error');
       }
     }
-    
+
+    // 生成過濾標籤
+    function generateFilterTags(subscriptions) {
+      const filterTagsContainer = document.getElementById('filterTags');
+      filterTagsContainer.innerHTML = '';
+
+      // 計算各類型數量
+      const typeCounts = {};
+      const statusCounts = {
+        normal: 0,
+        expiring: 0,
+        expired: 0,
+        inactive: 0
+      };
+
+      const now = new Date();
+
+      subscriptions.forEach(subscription => {
+        // 統計類型
+        const type = subscription.customType || '其他';
+        typeCounts[type] = (typeCounts[type] || 0) + 1;
+
+        // 統計狀態
+        if (!subscription.isActive) {
+          statusCounts.inactive++;
+        } else {
+          const expiryDate = new Date(subscription.expiryDate);
+          const daysDiff = Math.ceil((expiryDate - now) / (1000 * 60 * 60 * 24));
+
+          if (daysDiff < 0) {
+            statusCounts.expired++;
+          } else if (daysDiff <= (subscription.reminderDays || 7)) {
+            statusCounts.expiring++;
+          } else {
+            statusCounts.normal++;
+          }
+        }
+      });
+
+      // 全部標籤
+      const allTag = document.createElement('div');
+      allTag.className = 'filter-tag tag-all ' + (currentFilter === 'all' ? 'active' : '');
+      allTag.innerHTML = '<i class="fas fa-list mr-1"></i>全部<span class="count">' + subscriptions.length + '</span>';
+      allTag.addEventListener('click', () => filterSubscriptions('all'));
+      filterTagsContainer.appendChild(allTag);
+
+      // 狀態標籤
+      if (statusCounts.normal > 0) {
+        const normalTag = document.createElement('div');
+        normalTag.className = 'filter-tag tag-status-normal ' + (currentFilter === 'status-normal' ? 'active' : '');
+        normalTag.innerHTML = '<i class="fas fa-check-circle mr-1"></i>正常<span class="count">' + statusCounts.normal + '</span>';
+        normalTag.addEventListener('click', () => filterSubscriptions('status-normal'));
+        filterTagsContainer.appendChild(normalTag);
+      }
+
+      if (statusCounts.expiring > 0) {
+        const expiringTag = document.createElement('div');
+        expiringTag.className = 'filter-tag tag-status-expiring ' + (currentFilter === 'status-expiring' ? 'active' : '');
+        expiringTag.innerHTML = '<i class="fas fa-exclamation-triangle mr-1"></i>即將到期<span class="count">' + statusCounts.expiring + '</span>';
+        expiringTag.addEventListener('click', () => filterSubscriptions('status-expiring'));
+        filterTagsContainer.appendChild(expiringTag);
+      }
+
+      if (statusCounts.expired > 0) {
+        const expiredTag = document.createElement('div');
+        expiredTag.className = 'filter-tag tag-status-expired ' + (currentFilter === 'status-expired' ? 'active' : '');
+        expiredTag.innerHTML = '<i class="fas fa-exclamation-circle mr-1"></i>已過期<span class="count">' + statusCounts.expired + '</span>';
+        expiredTag.addEventListener('click', () => filterSubscriptions('status-expired'));
+        filterTagsContainer.appendChild(expiredTag);
+      }
+
+      if (statusCounts.inactive > 0) {
+        const inactiveTag = document.createElement('div');
+        inactiveTag.className = 'filter-tag tag-status-inactive ' + (currentFilter === 'status-inactive' ? 'active' : '');
+        inactiveTag.innerHTML = '<i class="fas fa-pause-circle mr-1"></i>已停用<span class="count">' + statusCounts.inactive + '</span>';
+        inactiveTag.addEventListener('click', () => filterSubscriptions('status-inactive'));
+        filterTagsContainer.appendChild(inactiveTag);
+      }
+
+      // 類型標籤（按數量排序）
+      const sortedTypes = Object.entries(typeCounts).sort(([,a], [,b]) => b - a);
+      sortedTypes.forEach(([type, count]) => {
+        const typeTag = document.createElement('div');
+        typeTag.className = 'filter-tag tag-type ' + (currentFilter === 'type-' + type ? 'active' : '');
+        typeTag.innerHTML = '<i class="fas fa-tag mr-1"></i>' + type + '<span class="count">' + count + '</span>';
+        typeTag.addEventListener('click', () => filterSubscriptions('type-' + type));
+        filterTagsContainer.appendChild(typeTag);
+      });
+    }
+
+    // 過濾訂閱
+    function filterSubscriptions(filterType) {
+      currentFilter = filterType;
+      const filteredData = getFilteredSubscriptions(allSubscriptions, filterType);
+      displayFilteredSubscriptions(filteredData);
+
+      // 更新標籤樣式
+      document.querySelectorAll('.filter-tag').forEach(tag => {
+        tag.classList.remove('active');
+      });
+      document.querySelector(`.filter-tag.${getTagClass(filterType)}`).classList.add('active');
+    }
+
+    // 獲取過濾後的訂閱
+    function getFilteredSubscriptions(subscriptions, filterType) {
+      if (filterType === 'all') {
+        return subscriptions;
+      }
+
+      const now = new Date();
+
+      return subscriptions.filter(subscription => {
+        if (filterType.startsWith('status-')) {
+          const status = filterType.substring(7);
+
+          if (status === 'inactive') {
+            return !subscription.isActive;
+          }
+
+          if (!subscription.isActive) return false;
+
+          const expiryDate = new Date(subscription.expiryDate);
+          const daysDiff = Math.ceil((expiryDate - now) / (1000 * 60 * 60 * 24));
+
+          switch (status) {
+            case 'normal':
+              return daysDiff > (subscription.reminderDays || 7);
+            case 'expiring':
+              return daysDiff >= 0 && daysDiff <= (subscription.reminderDays || 7);
+            case 'expired':
+              return daysDiff < 0;
+            default:
+              return false;
+          }
+        } else if (filterType.startsWith('type-')) {
+          const type = filterType.substring(5);
+          return (subscription.customType || '其他') === type;
+        }
+
+        return true;
+      });
+    }
+
+    // 獲取標籤 CSS 類別
+    function getTagClass(filterType) {
+      if (filterType === 'all') return 'tag-all';
+      if (filterType.startsWith('status-')) return 'tag-' + filterType;
+      if (filterType.startsWith('type-')) return 'tag-type';
+      return '';
+    }
+
+    // 顯示過濾後的訂閱
+    function displayFilteredSubscriptions(data) {
+      const tbody = document.getElementById('subscriptionsBody');
+      tbody.innerHTML = '';
+
+      if (data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-gray-500">沒有符合條件的訂閱</td></tr>';
+        return;
+      }
+
+      data.forEach(subscription => {
+        const row = document.createElement('tr');
+        row.className = subscription.isActive === false ? 'hover:bg-gray-50 bg-gray-100' : 'hover:bg-gray-50';
+
+        const expiryDate = new Date(subscription.expiryDate);
+        const now = new Date();
+        const daysDiff = Math.ceil((expiryDate - now) / (1000 * 60 * 60 * 24));
+
+        let statusHtml = '';
+        if (!subscription.isActive) {
+          statusHtml = '<span class="px-2 py-1 text-xs font-medium rounded-full text-white bg-gray-500"><i class="fas fa-pause-circle mr-1"></i>已停用</span>';
+        } else if (daysDiff < 0) {
+          statusHtml = '<span class="px-2 py-1 text-xs font-medium rounded-full text-white bg-red-500"><i class="fas fa-exclamation-circle mr-1"></i>已過期</span>';
+        } else if (daysDiff <= (subscription.reminderDays || 7)) {
+          statusHtml = '<span class="px-2 py-1 text-xs font-medium rounded-full text-white bg-yellow-500"><i class="fas fa-exclamation-triangle mr-1"></i>即將到期</span>';
+        } else {
+          statusHtml = '<span class="px-2 py-1 text-xs font-medium rounded-full text-white bg-green-500"><i class="fas fa-check-circle mr-1"></i>正常</span>';
+        }
+
+        let periodText = '';
+        if (subscription.periodValue && subscription.periodUnit) {
+          const unitMap = { day: '天', month: '月', year: '年' };
+          periodText = subscription.periodValue + ' ' + (unitMap[subscription.periodUnit] || subscription.periodUnit);
+        }
+
+        const autoRenewIcon = subscription.autoRenew !== false ?
+          '<i class="fas fa-sync-alt text-blue-500 ml-1" title="自動續訂"></i>' :
+          '<i class="fas fa-ban text-gray-400 ml-1" title="不自動續訂"></i>';
+
+        // 檢查是否顯示農曆
+        const showLunar = document.getElementById('listShowLunar').checked;
+        let lunarExpiryText = '';
+        let startLunarText = '';
+
+        if (showLunar) {
+          // 計算農曆日期
+          const expiryDateObj = new Date(subscription.expiryDate);
+          const lunarExpiry = lunarCalendar.solar2lunar(expiryDateObj.getFullYear(), expiryDateObj.getMonth() + 1, expiryDateObj.getDate());
+          lunarExpiryText = lunarExpiry ? lunarExpiry.fullStr : '';
+
+          if (subscription.startDate) {
+            const startDateObj = new Date(subscription.startDate);
+            const lunarStart = lunarCalendar.solar2lunar(startDateObj.getFullYear(), startDateObj.getMonth() + 1, startDateObj.getDate());
+            startLunarText = lunarStart ? lunarStart.fullStr : '';
+          }
+        }
+
+        // 處理備註顯示
+        let notesHtml = '';
+        if (subscription.notes) {
+          const notes = subscription.notes;
+          if (notes.length > 50) {
+            const truncatedNotes = notes.substring(0, 50) + '...';
+            notesHtml = '<div class="notes-container">' +
+              '<div class="notes-text text-xs text-gray-500" data-full-notes="' + notes.replace(/"/g, '&quot;') + '">' +
+                truncatedNotes +
+              '</div>' +
+              '<div class="notes-tooltip"></div>' +
+            '</div>';
+          } else {
+            notesHtml = '<div class="text-xs text-gray-500">' + notes + '</div>';
+          }
+        }
+
+        // 產生各列內容
+        const nameHtml = createHoverText(subscription.name, 20, 'text-sm font-medium text-gray-900');
+        const typeHtml = createHoverText((subscription.customType || '其他'), 15, 'text-sm text-gray-900');
+        const periodHtml = periodText ? createHoverText('週期: ' + periodText, 20, 'text-xs text-gray-500 mt-1') : '';
+
+        // 到期時間相關資訊
+        const expiryDateText = formatTaipeiTime(new Date(subscription.expiryDate), 'date');
+        const lunarHtml = lunarExpiryText ? createHoverText('農曆: ' + lunarExpiryText, 25, 'text-xs text-blue-600 mt-1') : '';
+        const daysLeftText = daysDiff < 0 ? '已過期' + Math.abs(daysDiff) + '天' : '還剩' + daysDiff + '天';
+        const startDateText = subscription.startDate ?
+          '開始: ' + formatTaipeiTime(new Date(subscription.startDate), 'date') + (startLunarText ? ' (' + startLunarText + ')' : '') : '';
+        const startDateHtml = startDateText ? createHoverText(startDateText, 30, 'text-xs text-gray-500 mt-1') : '';
+
+        row.innerHTML =
+          '<td data-label="名稱" class="px-4 py-3"><div class="td-content-wrapper">' +
+            nameHtml +
+            notesHtml +
+          '</div></td>' +
+          '<td data-label="類型" class="px-4 py-3"><div class="td-content-wrapper">' +
+            '<div class="flex items-center"><i class="fas fa-tag mr-1"></i><span>' + typeHtml + '</span></div>' +
+            (periodHtml ? '<div class="flex items-center">' + periodHtml + autoRenewIcon + '</div>' : '') +
+          '</div></td>' +
+          '<td data-label="到期時間" class="px-4 py-3"><div class="td-content-wrapper">' +
+            '<div class="text-sm text-gray-900">' + expiryDateText + '</div>' +
+            lunarHtml +
+            '<div class="text-xs text-gray-500 mt-1">' + daysLeftText + '</div>' +
+            startDateHtml +
+          '</div></td>' +
+          '<td data-label="提醒設定" class="px-4 py-3"><div class="td-content-wrapper">' +
+            '<div><i class="fas fa-bell mr-1"></i>提前' + (subscription.reminderDays || 0) + '天</div>' +
+            (subscription.reminderDays === 0 ? '<div class="text-xs text-gray-500 mt-1">僅到期日提醒</div>' : '') +
+          '</div></td>' +
+          '<td data-label="狀態" class="px-4 py-3"><div class="td-content-wrapper">' + statusHtml + '</div></td>' +
+          '<td data-label="操作" class="px-4 py-3">' +
+            '<div class="action-buttons-wrapper">' +
+              '<button class="edit btn-primary text-white px-2 py-1 rounded text-xs whitespace-nowrap" data-id="' + subscription.id + '"><i class="fas fa-edit mr-1"></i>編輯</button>' +
+              '<button class="test-notify btn-info text-white px-2 py-1 rounded text-xs whitespace-nowrap" data-id="' + subscription.id + '"><i class="fas fa-paper-plane mr-1"></i>測試</button>' +
+              '<button class="delete btn-danger text-white px-2 py-1 rounded text-xs whitespace-nowrap" data-id="' + subscription.id + '"><i class="fas fa-trash-alt mr-1"></i>刪除</button>' +
+              (subscription.isActive ?
+                '<button class="toggle-status btn-warning text-white px-2 py-1 rounded text-xs whitespace-nowrap" data-id="' + subscription.id + '" data-action="deactivate"><i class="fas fa-pause-circle mr-1"></i>停用</button>' :
+                '<button class="toggle-status btn-success text-white px-2 py-1 rounded text-xs whitespace-nowrap" data-id="' + subscription.id + '" data-action="activate"><i class="fas fa-play-circle mr-1"></i>啟用</button>') +
+            '</div>' +
+          '</td>';
+
+        tbody.appendChild(row);
+      });
+
+      // 重新綁定事件監聽器
+      document.querySelectorAll('.edit').forEach(button => {
+        button.addEventListener('click', editSubscription);
+      });
+
+      document.querySelectorAll('.delete').forEach(button => {
+        button.addEventListener('click', deleteSubscription);
+      });
+
+      document.querySelectorAll('.toggle-status').forEach(button => {
+        button.addEventListener('click', toggleSubscriptionStatus);
+      });
+
+      document.querySelectorAll('.test-notify').forEach(button => {
+        button.addEventListener('click', testSubscriptionNotification);
+      });
+
+      // 新增懸停功能
+      addHoverListeners();
+    }
+
+    // 新增懸停功能
+    function addHoverListeners() {
+      // 計算懸浮提示位置
+      function positionTooltip(element, tooltip) {
+        const rect = element.getBoundingClientRect();
+        const tooltipHeight = 100; // 預估高度
+        const viewportHeight = window.innerHeight;
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+        let top = rect.bottom + scrollTop + 8;
+        let left = rect.left;
+
+        // 如果下方空間不夠，顯示在上方
+        if (rect.bottom + tooltipHeight > viewportHeight) {
+          top = rect.top + scrollTop - tooltipHeight - 8;
+          tooltip.style.transform = 'translateY(10px)';
+          // 調整箭頭位置
+          tooltip.classList.add('tooltip-above');
+        } else {
+          tooltip.style.transform = 'translateY(-10px)';
+          tooltip.classList.remove('tooltip-above');
+        }
+
+        // 確保不超出右邊界
+        const maxLeft = window.innerWidth - 320 - 20;
+        if (left > maxLeft) {
+          left = maxLeft;
+        }
+
+        tooltip.style.left = left + 'px';
+        tooltip.style.top = top + 'px';
+      }
+
+      // 備註懸停功能
+      document.querySelectorAll('.notes-text').forEach(notesElement => {
+        const fullNotes = notesElement.getAttribute('data-full-notes');
+        const tooltip = notesElement.parentElement.querySelector('.notes-tooltip');
+
+        if (fullNotes && tooltip) {
+          notesElement.addEventListener('mouseenter', () => {
+            tooltip.textContent = fullNotes;
+            positionTooltip(notesElement, tooltip);
+            tooltip.classList.add('show');
+          });
+
+          notesElement.addEventListener('mouseleave', () => {
+            tooltip.classList.remove('show');
+          });
+
+          // 捲動時隱藏提示
+          window.addEventListener('scroll', () => {
+            if (tooltip.classList.contains('show')) {
+              tooltip.classList.remove('show');
+            }
+          }, { passive: true });
+        }
+      });
+
+      // 通用懸停功能
+      document.querySelectorAll('.hover-text').forEach(hoverElement => {
+        const fullText = hoverElement.getAttribute('data-full-text');
+        const tooltip = hoverElement.parentElement.querySelector('.hover-tooltip');
+
+        if (fullText && tooltip) {
+          hoverElement.addEventListener('mouseenter', () => {
+            tooltip.textContent = fullText;
+            positionTooltip(hoverElement, tooltip);
+            tooltip.classList.add('show');
+          });
+
+          hoverElement.addEventListener('mouseleave', () => {
+            tooltip.classList.remove('show');
+          });
+
+          // 捲動時隱藏提示
+          window.addEventListener('scroll', () => {
+            if (tooltip.classList.contains('show')) {
+              tooltip.classList.remove('show');
+            }
+          }, { passive: true });
+        }
+      });
+    }
+
     async function testSubscriptionNotification(e) {
         const button = e.target.tagName === 'BUTTON' ? e.target : e.target.parentElement;
         const id = button.dataset.id;
@@ -1272,24 +1503,24 @@ const adminPage = `
             button.disabled = false;
         }
     }
-    
+
     async function toggleSubscriptionStatus(e) {
       const id = e.target.dataset.id || e.target.parentElement.dataset.id;
       const action = e.target.dataset.action || e.target.parentElement.dataset.action;
       const isActivate = action === 'activate';
-      
+
       const button = e.target.tagName === 'BUTTON' ? e.target : e.target.parentElement;
       const originalContent = button.innerHTML;
       button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>' + (isActivate ? '啟用中...' : '停用中...');
       button.disabled = true;
-      
+
       try {
         const response = await fetch('/api/subscriptions/' + id + '/toggle-status', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ isActive: isActivate })
         });
-        
+
         if (response.ok) {
           showToast((isActivate ? '啟用' : '停用') + '成功', 'success');
           loadSubscriptions();
@@ -1306,7 +1537,7 @@ const adminPage = `
         button.disabled = false;
       }
     }
-    
+
     document.getElementById('addSubscriptionBtn').addEventListener('click', () => {
       document.getElementById('modalTitle').textContent = '新增訂閱';
       document.getElementById('subscriptionModal').classList.remove('hidden');
@@ -1325,7 +1556,7 @@ const adminPage = `
       calculateExpiryDate();
       setupModalEventListeners();
     });
-    
+
     function setupModalEventListeners() {
       document.getElementById('calculateExpiryBtn').removeEventListener('click', calculateExpiryDate);
       document.getElementById('calculateExpiryBtn').addEventListener('click', calculateExpiryDate);
@@ -1350,7 +1581,7 @@ const adminPage = `
         document.getElementById('subscriptionModal').classList.add('hidden');
       });
     }
-    
+
     function calculateExpiryDate() {
       const startDate = document.getElementById('startDate').value;
       const periodValue = parseInt(document.getElementById('periodValue').value);
@@ -1377,25 +1608,25 @@ const adminPage = `
       updateLunarDisplay('startDate', 'startDateLunar');
       updateLunarDisplay('expiryDate', 'expiryDateLunar');
     }
-    
+
     document.getElementById('closeModal').addEventListener('click', () => {
       document.getElementById('subscriptionModal').classList.add('hidden');
     });
-    
+
     // 禁止點擊彈窗外區域關閉彈窗，防止誤操作丟失內容
     // document.getElementById('subscriptionModal').addEventListener('click', (event) => {
     //   if (event.target === document.getElementById('subscriptionModal')) {
     //     document.getElementById('subscriptionModal').classList.add('hidden');
     //   }
     // });
-    
+
     document.getElementById('subscriptionForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      
+
       if (!validateForm()) {
         return;
       }
-      
+
       const id = document.getElementById('subscriptionId').value;
       const subscription = {
         name: document.getElementById('name').value.trim(),
@@ -1409,24 +1640,24 @@ const adminPage = `
         periodUnit: document.getElementById('periodUnit').value,
         reminderDays: parseInt(document.getElementById('reminderDays').value) || 0
       };
-      
+
       const submitButton = e.target.querySelector('button[type="submit"]');
       const originalContent = submitButton.innerHTML;
       submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>' + (id ? '更新中...' : '儲存中...');
       submitButton.disabled = true;
-      
+
       try {
         const url = id ? '/api/subscriptions/' + id : '/api/subscriptions';
         const method = id ? 'PUT' : 'POST';
-        
+
         const response = await fetch(url, {
           method: method,
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(subscription)
         });
-        
+
         const result = await response.json();
-        
+
         if (result.success) {
           showToast((id ? '更新' : '新增') + '訂閱成功', 'success');
           document.getElementById('subscriptionModal').classList.add('hidden');
@@ -1442,14 +1673,14 @@ const adminPage = `
         submitButton.disabled = false;
       }
     });
-    
+
     async function editSubscription(e) {
       const id = e.target.dataset.id || e.target.parentElement.dataset.id;
-      
+
       try {
         const response = await fetch('/api/subscriptions/' + id);
         const subscription = await response.json();
-        
+
         if (subscription) {
           document.getElementById('modalTitle').textContent = '編輯訂閱';
           document.getElementById('subscriptionId').value = subscription.id;
@@ -1463,7 +1694,7 @@ const adminPage = `
           document.getElementById('periodValue').value = subscription.periodValue || 1;
           document.getElementById('periodUnit').value = subscription.periodUnit || 'month';
           document.getElementById('reminderDays').value = subscription.reminderDays !== undefined ? subscription.reminderDays : 7;
-          
+
           clearFieldErrors();
           loadLunarPreference();
           document.getElementById('subscriptionModal').classList.remove('hidden');
@@ -1480,24 +1711,24 @@ const adminPage = `
         showToast('獲取訂閱資訊失敗', 'error');
       }
     }
-    
+
     async function deleteSubscription(e) {
       const id = e.target.dataset.id || e.target.parentElement.dataset.id;
-      
+
       if (!confirm('確定要刪除這個訂閱嗎？此操作不可復原。')) {
         return;
       }
-      
+
       const button = e.target.tagName === 'BUTTON' ? e.target : e.target.parentElement;
       const originalContent = button.innerHTML;
       button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>刪除中...';
       button.disabled = true;
-      
+
       try {
         const response = await fetch('/api/subscriptions/' + id, {
           method: 'DELETE'
         });
-        
+
         if (response.ok) {
           showToast('刪除成功', 'success');
           loadSubscriptions();
@@ -1514,7 +1745,7 @@ const adminPage = `
         button.disabled = false;
       }
     }
-    
+
     window.addEventListener('load', loadSubscriptions);
   </script>
 </body>
@@ -1535,7 +1766,7 @@ const configPage = `
     .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); }
     .btn-secondary { background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%); transition: all 0.3s; }
     .btn-secondary:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); }
-    
+
     .toast {
       position: fixed; top: 20px; right: 20px; padding: 12px 20px; border-radius: 8px;
       color: white; font-weight: 500; z-index: 1000; transform: translateX(400px);
@@ -1546,20 +1777,20 @@ const configPage = `
     .toast.error { background-color: #ef4444; }
     .toast.info { background-color: #3b82f6; }
     .toast.warning { background-color: #f59e0b; }
-    
-    .config-section { 
-      border: 1px solid #e5e7eb; 
-      border-radius: 8px; 
-      padding: 16px; 
-      margin-bottom: 24px; 
+
+    .config-section {
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 24px;
     }
-    .config-section.active { 
-      background-color: #f8fafc; 
-      border-color: #6366f1; 
+    .config-section.active {
+      background-color: #f8fafc;
+      border-color: #6366f1;
     }
-    .config-section.inactive { 
-      background-color: #f9fafb; 
-      opacity: 0.7; 
+    .config-section.inactive {
+      background-color: #f9fafb;
+      opacity: 0.7;
     }
   </style>
 </head>
@@ -1587,11 +1818,11 @@ const configPage = `
       </div>
     </div>
   </nav>
-  
+
   <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <div class="bg-white rounded-lg shadow-md p-6">
       <h2 class="text-2xl font-bold text-gray-800 mb-6">系統設定</h2>
-      
+
       <form id="configForm" class="space-y-8">
         <div class="border-b border-gray-200 pb-6">
           <h3 class="text-lg font-medium text-gray-900 mb-4">管理員帳號</h3>
@@ -1607,7 +1838,7 @@ const configPage = `
             </div>
           </div>
         </div>
-        
+
         <div class="border-b border-gray-200 pb-6">
           <h3 class="text-lg font-medium text-gray-900 mb-4">顯示設定</h3>
           <div class="mb-6">
@@ -1660,7 +1891,7 @@ const configPage = `
               </a>
             </div>
           </div>
-          
+
           <div id="telegramConfig" class="config-section">
             <h4 class="text-md font-medium text-gray-900 mb-3">Telegram 設定</h4>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -1679,7 +1910,7 @@ const configPage = `
               </button>
             </div>
           </div>
-          
+
           <div id="notifyxConfig" class="config-section">
             <h4 class="text-md font-medium text-gray-900 mb-3">NotifyX 設定</h4>
             <div class="mb-4">
@@ -1810,13 +2041,13 @@ const configPage = `
       const container = document.getElementById('toast-container');
       const toast = document.createElement('div');
       toast.className = 'toast ' + type;
-      
+
       const icon = type === 'success' ? 'check-circle' :
                    type === 'error' ? 'exclamation-circle' :
                    type === 'warning' ? 'exclamation-triangle' : 'info-circle';
-      
+
       toast.innerHTML = '<div class="flex items-center"><i class="fas fa-' + icon + ' mr-2"></i><span>' + message + '</span></div>';
-      
+
       container.appendChild(toast);
       setTimeout(() => toast.classList.add('show'), 100);
       setTimeout(() => {
@@ -1866,7 +2097,7 @@ const configPage = `
         showToast('載入設定失敗，請重新整理頁面再試', 'error');
       }
     }
-    
+
     function toggleNotificationConfigs(enabledNotifiers) {
       const telegramConfig = document.getElementById('telegramConfig');
       const notifyxConfig = document.getElementById('notifyxConfig');
@@ -1908,7 +2139,7 @@ const configPage = `
         toggleNotificationConfigs(enabledNotifiers);
       });
     });
-    
+
     document.getElementById('configForm').addEventListener('submit', async (e) => {
       e.preventDefault();
 
@@ -1974,7 +2205,7 @@ const configPage = `
         submitButton.disabled = false;
       }
     });
-    
+
     async function testNotification(type) {
       const buttonId = type === 'telegram' ? 'testTelegramBtn' :
                       type === 'notifyx' ? 'testNotifyXBtn' :
@@ -2070,11 +2301,11 @@ const configPage = `
         button.disabled = false;
       }
     }
-    
+
     document.getElementById('testTelegramBtn').addEventListener('click', () => {
       testNotification('telegram');
     });
-    
+
     document.getElementById('testNotifyXBtn').addEventListener('click', () => {
       testNotification('notifyx');
     });
