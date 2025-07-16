@@ -2259,6 +2259,7 @@ const api = {
         const body = await request.json();
         let success = false;
         let message = '';
+        const testImageUrl = 'https://picsum.photos/400/200'; // 測試圖片URL
 
         if (body.type === 'telegram') {
           const testConfig = {
@@ -2267,8 +2268,10 @@ const api = {
             TG_CHAT_ID: body.TG_CHAT_ID
           };
 
-          const content = '*測試通知*\n\n這是一條測試通知，用於驗證Telegram通知功能是否正常運作。\n\n傳送時間: ' + formatTaipeiTime();
-          success = await sendTelegramNotification(content, testConfig);
+          const content = '*測試通知*\n\n這是一條包含圖片的測試通知，用於驗證Telegram通知功能是否正常運作。\n\n傳送時間: ' + formatTaipeiTime();
+          success = await sendTelegramNotification(content, testConfig, {
+            imageUrl: testImageUrl
+          });
           message = success ? 'Telegram通知傳送成功' : 'Telegram通知傳送失敗，請檢查設定';
         } else if (body.type === 'notifyx') {
           const testConfig = {
@@ -2276,8 +2279,8 @@ const api = {
             NOTIFYX_API_KEY: body.NOTIFYX_API_KEY
           };
 
-          const title = '測試通知';
-          const content = '## 這是一條測試通知\n\n用於驗證NotifyX通知功能是否正常運作。\n\n傳送時間: ' + formatTaipeiTime();
+          const title = '測試通知 (含圖片)';
+          const content = `## 這是一條包含圖片的測試通知\n\n用於驗證NotifyX通知功能是否正常運作。\n\n傳送時間: ${formatTaipeiTime()}\n\n![測試圖片](${testImageUrl})`;
           const description = '測試NotifyX通知功能';
 
           success = await sendNotifyXNotification(title, content, description, testConfig);
@@ -2291,12 +2294,12 @@ const api = {
             WEBHOOK_TEMPLATE: body.WEBHOOK_TEMPLATE
           };
 
-          const title = '測試通知';
-          const content = '這是一條測試通知，用於驗證企業微信應用程式通知功能是否正常運作。\n\n傳送時間: ' + formatTaipeiTime();
+          const title = '測試通知 (含圖片)';
+          const content = `這是一條包含圖片的測試通知，用於驗證企業微信應用程式通知功能是否正常運作。\n圖片: ${testImageUrl}\n\n傳送時間: ${formatTaipeiTime()}`;
 
           success = await sendWebhookNotification(title, content, testConfig);
           message = success ? '企業微信應用程式通知傳送成功' : '企業微信應用程式通知傳送失敗，請檢查設定';
-         } else if (body.type === 'wechatbot') {
+        } else if (body.type === 'wechatbot') {
           const testConfig = {
             ...config,
             WECHATBOT_WEBHOOK: body.WECHATBOT_WEBHOOK,
@@ -2305,8 +2308,8 @@ const api = {
             WECHATBOT_AT_ALL: body.WECHATBOT_AT_ALL
           };
 
-          const title = '測試通知';
-          const content = '這是一條測試通知，用於驗證企業微信機器人功能是否正常運作。\n\n傳送時間: ' + formatTaipeiTime();
+          const title = '測試通知 (含圖片)';
+          const content = `這是一條包含圖片的測試通知，用於驗證企業微信機器人功能是否正常運作。\n圖片: ${testImageUrl}\n\n傳送時間: ${formatTaipeiTime()}`;
 
           success = await sendWechatBotNotification(title, content, testConfig);
           message = success ? '企業微信機器人通知傳送成功' : '企業微信機器人通知傳送失敗，請檢查設定';
@@ -2319,22 +2322,35 @@ const api = {
             EMAIL_TO: body.EMAIL_TO
           };
 
-          const title = '測試通知';
-          const content = '這是一條測試通知，用於驗證郵件通知功能是否正常運作。\n\n傳送時間: ' + formatTaipeiTime();
+          const title = '測試通知 (含圖片)';
+          const content = `這是一條包含圖片的測試通知，用於驗證郵件通知功能是否正常運作。\n\n傳送時間: ${formatTaipeiTime()}\n\n<img src="${testImageUrl}" alt="測試圖片" style="max-width:100%;" />`;
 
           success = await sendEmailNotification(title, content, testConfig);
           message = success ? '郵件通知傳送成功' : '郵件通知傳送失敗，請檢查設定';
         }
 
         return new Response(
-          JSON.stringify({ success, message }),
-          { headers: { 'Content-Type': 'application/json' } }
+          JSON.stringify({
+            success,
+            message
+          }), {
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          }
         );
       } catch (error) {
         console.error('測試通知失敗:', error);
         return new Response(
-          JSON.stringify({ success: false, message: '測試通知失敗: ' + error.message }),
-          { status: 500, headers: { 'Content-Type': 'application/json' } }
+          JSON.stringify({
+            success: false,
+            message: '測試通知失敗: ' + error.message
+          }), {
+            status: 500,
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          }
         );
       }
     }
@@ -2427,18 +2443,32 @@ const api = {
           const body = await request.json();
           const title = body.title || '第三方通知';
           const content = body.content || '';
+          let imageUrl = body.imageUrl;
 
           if (!content) {
             return new Response(
-              JSON.stringify({ message: '缺少必填參數 content' }),
-              { status: 400, headers: { 'Content-Type': 'application/json' } }
+              JSON.stringify({
+                message: '缺少必填參數 content'
+              }), {
+                status: 400,
+                headers: {
+                  'Content-Type': 'application/json'
+                }
+              }
             );
+          }
+
+          if (!imageUrl) {
+            imageUrl = extractFirstImageUrl(content);
+            if (imageUrl) console.log(`[第三方API] 在內容中找到圖片: ${imageUrl}`);
           }
 
           const config = await getConfig(env);
 
           // 使用多頻道傳送通知
-          await sendNotificationToAllChannels(title, content, config, '[第三方API]');
+          await sendNotificationToAllChannels(title, content, config, '[第三方API]', {
+            imageUrl
+          });
 
           return new Response(
             JSON.stringify({
@@ -2448,8 +2478,11 @@ const api = {
                 errmsg: 'ok',
                 msgid: 'MSGID' + Date.now()
               }
-            }),
-            { headers: { 'Content-Type': 'application/json' } }
+            }), {
+              headers: {
+                'Content-Type': 'application/json'
+              }
+            }
           );
         } catch (error) {
           console.error('[第三方API] 傳送通知失敗:', error);
@@ -2460,8 +2493,12 @@ const api = {
                 errcode: 1,
                 errmsg: error.message
               }
-            }),
-            { status: 500, headers: { 'Content-Type': 'application/json' } }
+            }), {
+              status: 500,
+              headers: {
+                'Content-Type': 'application/json'
+              }
+            }
           );
         }
       }
@@ -2475,6 +2512,13 @@ const api = {
 };
 
 // 工具函數
+function extractFirstImageUrl(text) {
+  if (!text) return null;
+  const imageUrlRegex = /(https?:\/\/[^\s]+?\.(?:jpg|jpeg|gif|png|webp))/i;
+  const match = text.match(imageUrlRegex);
+  return match ? match[0] : null;
+}
+
 function generateRandomSecret() {
   // 產生一個64字元的隨機金鑰
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
@@ -2765,11 +2809,19 @@ async function testSingleSubscriptionNotification(id, env) {
   try {
     const subscription = await getSubscription(id, env);
     if (!subscription) {
-      return { success: false, message: '未找到該訂閱' };
+      return {
+        success: false,
+        message: '未找到該訂閱'
+      };
     }
     const config = await getConfig(env);
 
     const title = `手動測試通知: ${subscription.name}`;
+
+    const imageUrl = extractFirstImageUrl(subscription.notes);
+    if (imageUrl) {
+      console.log(`[手動測試] 在 "${subscription.name}" 的備註中找到圖片: ${imageUrl}`);
+    }
 
     // 檢查是否顯示農曆（從設定中獲取，預設不顯示）
     const showLunar = config.SHOW_LUNAR === true;
@@ -2785,13 +2837,21 @@ async function testSingleSubscriptionNotification(id, env) {
     const commonContent = `**訂閱詳情**:\n- **類型**: ${subscription.customType || '其他'}\n- **到期日**: ${formatTaipeiTime(new Date(subscription.expiryDate), 'date')}${lunarExpiryText}\n- **備註**: ${subscription.notes || '無'}`;
 
     // 使用多頻道傳送
-    await sendNotificationToAllChannels(title, commonContent, config, '[手動測試]');
+    await sendNotificationToAllChannels(title, commonContent, config, '[手動測試]', {
+      imageUrl
+    });
 
-    return { success: true, message: '測試通知已傳送到所有啟用的頻道' };
+    return {
+      success: true,
+      message: '測試通知已傳送到所有啟用的頻道'
+    };
 
   } catch (error) {
     console.error('[手動測試] 傳送失敗:', error);
-    return { success: false, message: '傳送時發生錯誤: ' + error.message };
+    return {
+      success: false,
+      message: '傳送時發生錯誤: ' + error.message
+    };
   }
 }
 
@@ -2943,71 +3003,109 @@ async function sendWechatBotNotification(title, content, config) {
   }
 }
 
-async function sendNotificationToAllChannels(title, commonContent, config, logPrefix = '[定時任務]') {
+async function sendNotificationToAllChannels(title, commonContent, config, logPrefix = '[定時任務]', options = {}) {
+    const {
+        imageUrl
+    } = options;
     if (!config.ENABLED_NOTIFIERS || config.ENABLED_NOTIFIERS.length === 0) {
         console.log(`${logPrefix} 未啟用任何通知頻道。`);
         return;
     }
 
     if (config.ENABLED_NOTIFIERS.includes('notifyx')) {
-        const notifyxContent = `## ${title}\n\n${commonContent}`;
+        let notifyxContent = `## ${title}\n\n${commonContent}`;
+        if (imageUrl) {
+            notifyxContent += `\n\n![image](${imageUrl})`;
+        }
         const success = await sendNotifyXNotification(title, notifyxContent, `訂閱提醒`, config);
         console.log(`${logPrefix} 傳送NotifyX通知 ${success ? '成功' : '失敗'}`);
     }
     if (config.ENABLED_NOTIFIERS.includes('telegram')) {
         const telegramContent = `*${title}*\n\n${commonContent.replace(/(\s)/g, ' ')}`;
-        const success = await sendTelegramNotification(telegramContent, config);
+        const success = await sendTelegramNotification(telegramContent, config, {
+            imageUrl
+        });
         console.log(`${logPrefix} 傳送Telegram通知 ${success ? '成功' : '失敗'}`);
     }
     if (config.ENABLED_NOTIFIERS.includes('webhook')) {
-        const webhookContent = commonContent.replace(/(\**|\*|##|#|`)/g, '');
+        let webhookContent = commonContent.replace(/(\**|\*|##|#|`)/g, '');
+        if (imageUrl) {
+            webhookContent += `\n圖片: ${imageUrl}`;
+        }
         const success = await sendWebhookNotification(title, webhookContent, config);
         console.log(`${logPrefix} 傳送企業微信應用程式通知 ${success ? '成功' : '失敗'}`);
     }
     if (config.ENABLED_NOTIFIERS.includes('wechatbot')) {
-        const wechatbotContent = commonContent.replace(/(\**|\*|##|#|`)/g, '');
+        let wechatbotContent = commonContent.replace(/(\**|\*|##|#|`)/g, '');
+        if (imageUrl) {
+            wechatbotContent += `\n圖片: ${imageUrl}`;
+        }
         const success = await sendWechatBotNotification(title, wechatbotContent, config);
         console.log(`${logPrefix} 傳送企業微信機器人通知 ${success ? '成功' : '失敗'}`);
     }
     if (config.ENABLED_NOTIFIERS.includes('weixin')) {
-        const weixinContent = `【${title}】\n\n${commonContent.replace(/(\**|\*|##|#|`)/g, '')}`;
+        let weixinContent = `【${title}】\n\n${commonContent.replace(/(\**|\*|##|#|`)/g, '')}`;
+        if (imageUrl) {
+            weixinContent += `\n圖片: ${imageUrl}`;
+        }
         const result = await sendWeComNotification(weixinContent, config);
         console.log(`${logPrefix} 傳送企業微信通知 ${result.success ? '成功' : '失敗'}. ${result.message}`);
     }
     if (config.ENABLED_NOTIFIERS.includes('email')) {
-        const emailContent = commonContent.replace(/(\**|\*|##|#|`)/g, '');
+        let emailContent = commonContent.replace(/(\**|\*|##|#|`)/g, '');
+        if (imageUrl) {
+            emailContent += `\n\n<img src="${imageUrl}" alt="notification image" style="max-width: 100%; height: auto;" />`;
+        }
         const success = await sendEmailNotification(title, emailContent, config);
         console.log(`${logPrefix} 傳送郵件通知 ${success ? '成功' : '失敗'}`);
     }
 }
 
-async function sendTelegramNotification(message, config) {
-  try {
-    if (!config.TG_BOT_TOKEN || !config.TG_CHAT_ID) {
-      console.error('[Telegram] 通知未設定，缺少Bot Token或Chat ID');
-      return false;
+async function sendTelegramNotification(message, config, options = {}) {
+    const {
+        imageUrl
+    } = options;
+    try {
+        if (!config.TG_BOT_TOKEN || !config.TG_CHAT_ID) {
+            console.error('[Telegram] 通知未設定，缺少Bot Token或Chat ID');
+            return false;
+        }
+
+        console.log('[Telegram] 開始傳送通知到 Chat ID: ' + config.TG_CHAT_ID);
+
+        let url, body;
+        if (imageUrl) {
+            url = `https://api.telegram.org/bot${config.TG_BOT_TOKEN}/sendPhoto`;
+            body = {
+                chat_id: config.TG_CHAT_ID,
+                photo: imageUrl,
+                caption: message,
+                parse_mode: 'Markdown'
+            };
+        } else {
+            url = `https://api.telegram.org/bot${config.TG_BOT_TOKEN}/sendMessage`;
+            body = {
+                chat_id: config.TG_CHAT_ID,
+                text: message,
+                parse_mode: 'Markdown'
+            };
+        }
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(body)
+        });
+
+        const result = await response.json();
+        console.log('[Telegram] 傳送結果:', result);
+        return result.ok;
+    } catch (error) {
+        console.error('[Telegram] 傳送通知失敗:', error);
+        return false;
     }
-
-    console.log('[Telegram] 開始傳送通知到 Chat ID: ' + config.TG_CHAT_ID);
-
-    const url = 'https://api.telegram.org/bot' + config.TG_BOT_TOKEN + '/sendMessage';
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chat_id: config.TG_CHAT_ID,
-        text: message,
-        parse_mode: 'Markdown'
-      })
-    });
-
-    const result = await response.json();
-    console.log('[Telegram] 傳送結果:', result);
-    return result.ok;
-  } catch (error) {
-    console.error('[Telegram] 傳送通知失敗:', error);
-    return false;
-  }
 }
 
 async function sendNotifyXNotification(title, content, description, config) {
@@ -3102,7 +3200,7 @@ async function sendEmailNotification(title, content, config) {
         to: config.EMAIL_TO,
         subject: title,
         html: htmlContent,
-        text: content // 純文字備用
+        text: content.replace(/<img[^>]*>/g,"") // 純文字備用，並移除圖片標籤
       })
     });
 
@@ -3247,12 +3345,20 @@ async function checkExpiringSubscriptions(env) {
       console.log('[定時任務] 有 ' + expiringSubscriptions.length + ' 個訂閱需要傳送通知');
 
       let commonContent = '';
+      let imageUrl = null;
       expiringSubscriptions.sort((a, b) => a.daysRemaining - b.daysRemaining);
 
       // 檢查是否顯示農曆（從設定中獲取，預設不顯示）
       const showLunar = config.SHOW_LUNAR === true;
 
       for (const sub of expiringSubscriptions) {
+        if (!imageUrl) {
+          imageUrl = extractFirstImageUrl(sub.notes);
+          if (imageUrl) {
+            console.log(`[定時任務] 在 "${sub.name}" 的備註中找到圖片: ${imageUrl}`);
+          }
+        }
+
         const typeText = sub.customType || '其他';
         const periodText = (sub.periodValue && sub.periodUnit) ? `(週期: ${sub.periodValue} ${ { day: '天', month: '月', year: '年' }[sub.periodUnit] || sub.periodUnit})` : '';
 
@@ -3274,7 +3380,9 @@ async function checkExpiringSubscriptions(env) {
       }
 
       const title = '訂閱到期提醒';
-      await sendNotificationToAllChannels(title, commonContent, config, '[定時任務]');
+      await sendNotificationToAllChannels(title, commonContent, config, '[定時任務]', {
+        imageUrl
+      });
 
     } else {
       console.log('[定時任務] 沒有需要提醒的訂閱');
