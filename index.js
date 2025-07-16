@@ -1203,7 +1203,7 @@ const adminPage = `
       document.querySelectorAll('.filter-tag').forEach(tag => {
         tag.classList.remove('active');
       });
-      document.querySelector(`.filter-tag.${getTagClass(filterType)}`).classList.add('active');
+      document.querySelector('.filter-tag.' + getTagClass(filterType)).classList.add('active');
     }
 
     // 獲取過濾後的訂閱
